@@ -17,10 +17,10 @@ presets:
     bold: false
     italic: false
     border_style: 1
-    outline: 2
-    shadow: 1
+    outline: 1
+    shadow: 0
     alignment: 2
-    margin_v: 48
+    margin_v: 24
 
   bold:
     font_name: Arial
