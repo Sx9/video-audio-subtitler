@@ -1,367 +1,427 @@
 ﻿# Video / Audio Subtitler
 
-A local Windows-based Python application for generating transcripts and subtitles from audio or video files using faster-whisper and FFmpeg.
+Local Python tool for generating transcripts, WebVTT subtitles, MP3 audio exports, and subtitled MP4 videos from audio or video files.
+
+The app can process a single media file or recursively process every supported audio/video file inside a folder and its subfolders.
+
+---
 
 ## Features
 
-- Accept audio or video input
-- Generate a plain text transcript
-- Generate a WebVTT subtitle file
-- Create a video from audio plus a background image
-- Burn subtitles directly into the video
-- Embed subtitles as a selectable subtitle track
+- Accepts a single audio/video file or a folder path.
+- Recursively scans folders and subfolders for supported media files.
+- Generates a plain text transcript.
+- Generates a WebVTT subtitle file.
+- Generates an MP3 audio export.
+- Creates a burned-in subtitle video.
+- Creates an optional/selectable subtitle video.
+- Skips files that already have all expected output files.
+- For audio-only files, creates a video using a matching image if available.
+- If no matching image is found, creates a blank gray 16:9 background.
+- Uses FFmpeg for media conversion and subtitle rendering.
+- Uses Whisper transcription through the project transcription wrapper.
 
-## Video Input Workflow
-
-1. User provides a video file.
-2. FFmpeg extracts normalized audio from the video.
-3. faster-whisper transcribes the audio.
-4. The app writes a plain text transcript.
-5. The app writes a VTT subtitle file.
-6. The app creates a final video with burned or embedded subtitles.
-
-## Audio Input Workflow
-
-1. User provides an audio file.
-2. FFmpeg normalizes the audio for transcription.
-3. faster-whisper transcribes the audio.
-4. The app writes a plain text transcript.
-5. The app writes a VTT subtitle file.
-6. User provides a background image.
-7. FFmpeg creates a 16:9 video from the image and audio.
-8. The app creates a final video with burned or embedded subtitles.
-
-## Subtitle Modes
-
-### Burned Subtitles
-
-Burned subtitles are permanently rendered into the video image.
-
-Best for:
-
-- Social media
-- Maximum compatibility
-- Videos where subtitles should always be visible
-
-### Embedded Subtitles
-
-Embedded subtitles are added as a selectable subtitle track.
-
-Best for:
-
-- Local playback
-- Archival videos
-- Situations where subtitles should be optional
-
-## Project Structure
-
-Video - Audio Subtitler/
-  Documentation/
-    Video-Audio-Subtitler-Documentation.md
-  libraries/
-    __init__.py
-    Sx9FFmpeg.py
-    Sx9MediaInspector.py
-    Sx9PathUtils.py
-    Sx9SubtitleRenderer.py
-    Sx9VTTGenerator.py
-    Sx9Whisper.py
-  models/
-    __init__.py
-    Sx9SubtitlingJob.py
-    Sx9TranscriptionSegment.py
-  output/
-    audio/
-    subtitles/
-    transcripts/
-    videos/
-  temp/
-  ffmpeger.ps1
-  main.py
-  README.md
-  requirements.txt
-
-## Requirements
-
-- Windows
-- Python
-- Python virtual environment
-- FFmpeg
-- FFprobe
-- faster-whisper
-- Pillow
-
-## FFmpeg Setup
-
-FFmpeg must be installed and available on PATH.
-
-Verify FFmpeg with:
-
-ffmpeg -version
-
-Verify FFprobe with:
-
-ffprobe -version
-
-If FFmpeg is installed but not recognized, run:
-
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\ffmpeger.ps1
-
-Then restart PowerShell or PyCharm.
-
-## Virtual Environment Setup
-
-Activate the virtual environment:
-
-.\.venv\Scripts\Activate.ps1
-
-Install dependencies:
-
-python -m pip install -r requirements.txt
-
-## Running the Application
-
-From the project root, with the virtual environment activated:
-
-python main.py
-
-The application will ask for:
-
-1. Audio or video file path
-2. Whisper model size
-3. Subtitle mode
-4. Background image path if the input is audio-only
-
-## Whisper Model Options
-
-The app supports these model choices:
-
-- tiny
-- base
-- small
-- medium
-- large-v3
-
-Recommended first test:
-
-tiny
-
-Recommended normal use:
-
-base
-
-Better quality:
-
-small
+---
 
 ## Supported Input Formats
 
 ### Audio
 
-- .mp3
-- .wav
-- .m4a
-- .aac
-- .flac
-- .ogg
-- .wma
+- `.mp3`
+- `.wav`
+- `.m4a`
+- `.aac`
+- `.flac`
+- `.ogg`
+- `.wma`
 
 ### Video
 
-- .mp4
-- .mov
-- .mkv
-- .avi
-- .webm
-- .m4v
+- `.mp4`
+- `.mov`
+- `.mkv`
+- `.avi`
+- `.webm`
+- `.m4v`
 
-### Images
+### Background Images for Audio Files
 
-- .jpg
-- .jpeg
-- .png
-- .webp
-- .bmp
+For audio-only input files, the app looks for a matching image in the same folder.
+
+Example audio file:
+
+```text
+01-example.mp3
+```
+
+Matching image names checked:
+
+```text
+01-example.jpg
+01-example.jpeg
+01-example.png
+```
+
+If no matching image exists, the app creates a blank gray 1920x1080 background automatically.
+
+---
 
 ## Output Files
 
-Generated files are written to the output folder.
+For an input file named:
 
-Typical outputs:
+```text
+nn-filename.mp4
+```
 
-- output/audio/sample_audio.wav
-- output/transcripts/sample.txt
-- output/subtitles/sample.vtt
-- output/videos/sample_burn_subtitles.mp4
-- output/videos/sample_embed_subtitles.mp4
+or:
+
+```text
+nn-filename.mp3
+```
+
+the app creates these files in the same folder as the source file:
+
+```text
+nn-filename-burned-subtitles.mp4
+nn-filename-optional-subtitles.mp4
+nn-filename-transcript.txt
+nn-filename-audio.mp3
+nn-filename-subtitles.vtt
+```
+
+### Output File Details
+
+| File | Purpose |
+|---|---|
+| `nn-filename-burned-subtitles.mp4` | MP4 video with subtitles permanently burned into the image |
+| `nn-filename-optional-subtitles.mp4` | MP4 video with subtitles embedded as a selectable subtitle track |
+| `nn-filename-transcript.txt` | Plain text transcript |
+| `nn-filename-audio.mp3` | MP3 audio export |
+| `nn-filename-subtitles.vtt` | WebVTT subtitle file |
+
+---
+
+## Skip Behavior
+
+The app checks whether all expected output files already exist.
+
+If all five output files are found, the source file is skipped:
+
+```text
+nn-filename-burned-subtitles.mp4
+nn-filename-optional-subtitles.mp4
+nn-filename-transcript.txt
+nn-filename-audio.mp3
+nn-filename-subtitles.vtt
+```
+
+This makes it safe to re-run the app on the same folder after adding more files.
+
+---
+
+## Requirements
+
+### Python
+
+This project uses Python with a virtual environment.
+
+Check Python:
+
+```powershell
+python --version
+```
+
+### FFmpeg
+
+FFmpeg and FFprobe must be installed and available on the system PATH.
+
+Check FFmpeg:
+
+```powershell
+ffmpeg -version
+```
+
+Check FFprobe:
+
+```powershell
+ffprobe -version
+```
+
+### Python Packages
+
+Install project dependencies inside the virtual environment:
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+---
+
+## Setup
+
+From the project root:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+If PowerShell blocks script activation, run:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
+```
+
+---
+
+## Running the App
+
+From the project root, with the virtual environment activated:
+
+```powershell
+python main.py
+```
+
+The app will ask for:
+
+1. A single audio/video file path, or
+2. A folder path containing audio/video files.
+
+Then it will ask which Whisper model to use.
+
+The app automatically creates both subtitle video versions, so it does not ask whether to burn or embed subtitles.
+
+---
+
+## Example: Process One File
+
+Input:
+
+```text
+C:\Media\01-introduction.mp4
+```
+
+Outputs:
+
+```text
+C:\Media\01-introduction-burned-subtitles.mp4
+C:\Media\01-introduction-optional-subtitles.mp4
+C:\Media\01-introduction-transcript.txt
+C:\Media\01-introduction-audio.mp3
+C:\Media\01-introduction-subtitles.vtt
+```
+
+---
+
+## Example: Process a Folder Recursively
+
+Input:
+
+```text
+C:\Media\Course
+```
+
+The app will scan that folder and its subfolders for supported audio/video files.
+
+---
+
+## Whisper Model Choices
+
+When the app starts, it asks which Whisper model to use:
+
+| Option | Model | Notes |
+|---|---|---|
+| 1 | `tiny` | Fastest, lowest accuracy |
+| 2 | `base` | Good default for testing |
+| 3 | `small` | Better quality |
+| 4 | `medium` | Slower, better quality |
+| 5 | `large-v3` | Slowest, best quality |
+
+Default:
+
+```text
+base
+```
+
+---
+
+## Audio File Background Images
+
+For audio files, the app needs a visual background so it can create subtitled MP4 videos.
+
+If the audio file is:
+
+```text
+07-topic.mp3
+```
+
+the app checks for:
+
+```text
+07-topic.jpg
+07-topic.jpeg
+07-topic.png
+```
+
+If one exists, it is used as the video background.
+
+If none exists, a blank gray 1920x1080 image is generated automatically.
+
+---
+
+## Temporary Files
+
+The app may create a `temp` folder beside processed media files for intermediate working files, such as:
+
+- normalized WAV audio for transcription
+- base video files for audio-only inputs
+- generated gray background images
+
+These files are working files and can usually be deleted after processing if the final outputs were created successfully.
+
+---
+
+## Project Structure
+
+```text
+Video - Audio Subtitler
+|-- Documentation
+|   |-- readme maker.ps1
+|   |-- Video-Audio-Subtitler-Documentation.md
+|-- libraries
+|   |-- __init__.py
+|   |-- Sx9FFmpeg.py
+|   |-- Sx9MediaInspector.py
+|   |-- Sx9PathUtils.py
+|   |-- Sx9SubtitleRenderer.py
+|   |-- Sx9VTTGenerator.py
+|   |-- Sx9Whisper.py
+|-- models
+|   |-- __init__.py
+|   |-- Sx9SubtitlingJob.py
+|   |-- Sx9TranscriptionSegment.py
+|-- ffmpeger.ps1
+|-- main.py
+|-- README.md
+|-- requirements.txt
+```
+
+---
 
 ## Main Components
 
-### main.py
+### `main.py`
 
-Command-line entry point.
+Command-line entry point and workflow coordinator.
 
-Responsible for:
+Responsibilities:
 
-- Asking the user for input
-- Running the full pipeline
-- Calling the library classes
-- Printing final output paths
+- asks for file/folder input
+- finds supported media files
+- manages batch processing
+- skips completed files
+- coordinates audio extraction, transcription, subtitle generation, and video rendering
 
-### libraries/Sx9FFmpeg.py
+### `libraries/Sx9FFmpeg.py`
 
 Wrapper around FFmpeg and FFprobe.
 
-Responsible for:
+Used for:
 
-- Checking FFmpeg availability
-- Extracting audio from video
-- Normalizing audio
-- Creating video from image and audio
-- Burning subtitles
-- Embedding subtitles
+- checking FFmpeg availability
+- extracting audio from video
+- normalizing audio
+- creating video from image and audio
+- burning subtitles
+- embedding subtitles
 
-### libraries/Sx9Whisper.py
+### `libraries/Sx9MediaInspector.py`
 
-Wrapper around faster-whisper.
+Detects supported media types and validates images.
 
-Responsible for:
+### `libraries/Sx9SubtitleRenderer.py`
 
-- Loading the Whisper model
-- Transcribing audio
-- Creating transcription segments
-- Writing plain text transcripts
+Applies subtitles by choosing burned or embedded subtitle rendering.
 
-### libraries/Sx9VTTGenerator.py
+### `libraries/Sx9VTTGenerator.py`
 
-Generates WebVTT subtitle files.
+Creates WebVTT subtitle files from transcription segments.
 
-Responsible for:
+### `libraries/Sx9Whisper.py`
 
-- Formatting timestamps
-- Cleaning subtitle text
-- Writing VTT files
+Handles transcription and transcript writing.
 
-### libraries/Sx9MediaInspector.py
+---
 
-Validates and classifies media files.
+## Troubleshooting
 
-Responsible for:
+### FFmpeg not found
 
-- Detecting audio files
-- Detecting video files
-- Validating image files
-- Checking whether images are roughly 16:9
+If FFmpeg or FFprobe is unavailable, confirm they work in PowerShell:
 
-### libraries/Sx9SubtitleRenderer.py
-
-Chooses how subtitles are applied.
-
-Responsible for:
-
-- Burning subtitles
-- Embedding subtitles
-- Delegating to Sx9FFmpeg
-
-### libraries/Sx9PathUtils.py
-
-Centralizes output path generation.
-
-Responsible for:
-
-- Creating output folders
-- Building consistent output file paths
-
-### models/Sx9TranscriptionSegment.py
-
-Data model for one timestamped transcription segment.
-
-### models/Sx9SubtitlingJob.py
-
-Data model for a complete subtitling job configuration.
-
-## Basic Workflow
-
-Input media
-  -> Detect media type
-  -> Prepare audio
-  -> Transcribe with Whisper
-  -> Generate transcript
-  -> Generate VTT subtitles
-  -> Create or reuse video
-  -> Burn or embed subtitles
-  -> Final video output
-
-## Git Notes
-
-Recommended ignored files and folders:
-
-- .venv/
-- __pycache__/
-- output/
-- temp/
-- .idea/
-
-Generated media files should generally not be committed.
-
-Main source files to commit:
-
-- main.py
-- libraries/
-- models/
-- Documentation/
-- requirements.txt
-- ffmpeger.ps1
-- README.md
-
-## Common Commands
-
-Activate venv:
-
-.\.venv\Scripts\Activate.ps1
-
-Run app:
-
-python main.py
-
-Verify FFmpeg:
-
+```powershell
 ffmpeg -version
-
-Verify FFprobe:
-
 ffprobe -version
+```
 
-Install dependencies:
+If they do not work, install FFmpeg and add its `bin` folder to your PATH.
 
-python -m pip install -r requirements.txt
+### No media files found
 
-Freeze dependencies:
+Confirm the folder contains files with supported extensions:
 
-python -m pip freeze > requirements.txt
+```text
+.mp3 .wav .m4a .aac .flac .ogg .wma
+.mp4 .mov .mkv .avi .webm .m4v
+```
 
-Git status:
+### File skipped unexpectedly
 
-git status
+The app skips a source file only when all five expected output files already exist.
 
-Commit changes:
+Delete one or more output files if you want the app to regenerate that source file.
 
-git add .
-git commit -m "Update project"
+### Audio file has no background image
 
-Push changes:
+This is allowed.
 
-git push
+The app will create a blank gray background automatically.
 
-## Notes
+---
 
-- The first transcription may take time because the Whisper model may need to download.
-- Burned subtitles are most compatible across players and platforms.
-- Embedded subtitles may need to be manually enabled in some video players.
-- Audio-only inputs require a background image to create a video.
-- Non-16:9 images are scaled and padded to 1920x1080.
+## Recommended `.gitignore`
 
-## License
+Generated media and local environment files should usually not be committed.
 
-No license has been specified yet.
+Recommended ignores:
+
+```text
+.venv/
+__pycache__/
+*.pyc
+output/
+temp/
+.idea/
+.DS_Store
+Thumbs.db
+```
+
+---
+
+## Status
+
+Current workflow:
+
+1. Select a file or folder.
+2. Recursively discover supported media.
+3. Skip completed files.
+4. Extract or normalize audio.
+5. Transcribe audio.
+6. Write transcript.
+7. Write VTT subtitles.
+8. Export MP3 audio.
+9. Create burned subtitle video.
+10. Create optional subtitle video.
