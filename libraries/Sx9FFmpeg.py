@@ -178,5 +178,8 @@ class Sx9FFmpeg:
         resolved_path = str(Path(path).resolve())
         return resolved_path.replace("\\", "/").replace(":", "\\:")
 
+    def _escape_subtitle_style_for_ffmpeg(self, style: str) -> str:
+        return style.replace("\\", "\\\\").replace("'", "\\'")
+
     def __repr__(self):
         return f"Sx9FFmpeg(ffmpeg_command='{self.ffmpeg_command}')"

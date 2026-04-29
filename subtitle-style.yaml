@@ -5,12 +5,12 @@
 # - bold
 # - cinematic
 # - social
-active_preset: cinematic
+active_preset: clean
 
 presets:
   clean:
     font_name: Aptos
-    font_size: 28
+    font_size: 20
     primary_colour: "&H00FFFFFF"
     outline_colour: "&H00000000"
     back_colour: "&H80000000"
