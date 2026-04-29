@@ -11,6 +11,7 @@ class Sx9SubtitleRenderer:
         vtt_path: str,
         output_video_path: str,
         mode: str,
+        subtitle_force_style: str | None = None,
     ) -> str:
         normalized_mode = mode.lower().strip()
 
@@ -19,6 +20,7 @@ class Sx9SubtitleRenderer:
                 input_video_path=input_video_path,
                 vtt_path=vtt_path,
                 output_video_path=output_video_path,
+                subtitle_force_style=subtitle_force_style,
             )
 
         if normalized_mode == "embed":

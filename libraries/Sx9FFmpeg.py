@@ -97,10 +97,17 @@ class Sx9FFmpeg:
         input_video_path: str,
         vtt_path: str,
         output_video_path: str,
+        subtitle_force_style: str | None = None,
     ) -> str:
         Path(output_video_path).parent.mkdir(parents=True, exist_ok=True)
 
         escaped_vtt_path = self._escape_subtitle_path_for_ffmpeg(vtt_path)
+
+        subtitle_filter = f"subtitles='{escaped_vtt_path}'"
+
+        if subtitle_force_style:
+            escaped_style = self._escape_subtitle_style_for_ffmpeg(subtitle_force_style)
+            subtitle_filter = f"{subtitle_filter}:force_style='{escaped_style}'"
 
         command = [
             self.ffmpeg_command,
@@ -108,7 +115,7 @@ class Sx9FFmpeg:
             "-i",
             input_video_path,
             "-vf",
-            f"subtitles='{escaped_vtt_path}'",
+            subtitle_filter,
             "-c:a",
             "copy",
             output_video_path,

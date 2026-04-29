@@ -15,6 +15,8 @@ The app can process a single media file or recursively process every supported a
 - Generates an MP3 audio export.
 - Creates a burned-in subtitle video.
 - Creates an optional/selectable subtitle video.
+- Supports configurable burned-in subtitle styling through subtitle-style.yaml.
+- Lets you quickly switch between subtitle style presets such as clean, bold, cinematic, and social.
 - Skips files that already have all expected output files.
 - For audio-only files, creates a video using a matching image if available.
 - If no matching image is found, creates a blank gray 16:9 background.
@@ -23,26 +25,140 @@ The app can process a single media file or recursively process every supported a
 
 ---
 
+## Subtitle Styling Configuration
+
+Burned-in subtitle appearance can be configured with:
+
+    subtitle-style.yaml
+
+This file controls the style used when creating:
+
+    nn-filename-burned-subtitles.mp4
+
+The optional/selectable subtitle video embeds a subtitle track, but most video players control the appearance of embedded subtitles themselves. Because of that, the style configuration is mainly for burned-in subtitles.
+
+### Choosing a Preset
+
+Open subtitle-style.yaml and change:
+
+    active_preset: clean
+
+to another preset name, for example:
+
+    active_preset: bold
+
+Available presets:
+
+- clean
+- bold
+- cinematic
+- social
+
+Recommended starting points:
+
+| Preset | Best For |
+|---|---|
+| clean | General readable subtitles |
+| bold | Stronger visibility on mixed backgrounds |
+| cinematic | Slightly more polished traditional video styling |
+| social | Larger mobile-first subtitles for short-form clips |
+
+### Example Style Config
+
+The config file uses YAML.
+
+Example:
+
+    active_preset: clean
+
+    presets:
+      clean:
+        font_name: Arial
+        font_size: 28
+        primary_colour: "&H00FFFFFF"
+        outline_colour: "&H00000000"
+        back_colour: "&H80000000"
+        bold: false
+        italic: false
+        border_style: 1
+        outline: 2
+        shadow: 1
+        alignment: 2
+        margin_v: 48
+
+### Style Options
+
+| Option | Meaning |
+|---|---|
+| font_name | Font family used for burned subtitles |
+| font_size | Subtitle text size |
+| primary_colour | Main subtitle text color |
+| outline_colour | Text outline color |
+| back_colour | Background/shadow color value |
+| bold | Enables bold text when set to true |
+| italic | Enables italic text when set to true |
+| border_style | Subtitle border mode |
+| outline | Outline thickness |
+| shadow | Shadow depth |
+| alignment | Subtitle screen position |
+| margin_v | Vertical distance from the bottom when using bottom alignment |
+
+### Common Alignment Values
+
+| Value | Position |
+|---|---|
+| 1 | Bottom left |
+| 2 | Bottom center |
+| 3 | Bottom right |
+| 5 | Middle center |
+| 8 | Top center |
+
+Default subtitle placement uses:
+
+    alignment: 2
+
+which means bottom center.
+
+### Trying Different Looks
+
+To compare styles, change active_preset, delete the existing burned-subtitles output file, and run the app again.
+
+Example:
+
+    active_preset: social
+
+Then delete:
+
+    nn-filename-burned-subtitles.mp4
+
+Run:
+
+    python main.py
+
+The app skips a source file only when all expected output files exist. Removing the burned subtitle video lets that file be regenerated.
+
+---
+
 ## Supported Input Formats
 
 ### Audio
 
-- `.mp3`
-- `.wav`
-- `.m4a`
-- `.aac`
-- `.flac`
-- `.ogg`
-- `.wma`
+- .mp3
+- .wav
+- .m4a
+- .aac
+- .flac
+- .ogg
+- .wma
 
 ### Video
 
-- `.mp4`
-- `.mov`
-- `.mkv`
-- `.avi`
-- `.webm`
-- `.m4v`
+- .mp4
+- .mov
+- .mkv
+- .avi
+- .webm
+- .m4v
 
 ### Background Images for Audio Files
 
@@ -50,17 +166,13 @@ For audio-only input files, the app looks for a matching image in the same folde
 
 Example audio file:
 
-```text
-01-example.mp3
-```
+    01-example.mp3
 
 Matching image names checked:
 
-```text
-01-example.jpg
-01-example.jpeg
-01-example.png
-```
+    01-example.jpg
+    01-example.jpeg
+    01-example.png
 
 If no matching image exists, the app creates a blank gray 1920x1080 background automatically.
 
@@ -70,35 +182,29 @@ If no matching image exists, the app creates a blank gray 1920x1080 background a
 
 For an input file named:
 
-```text
-nn-filename.mp4
-```
+    nn-filename.mp4
 
 or:
 
-```text
-nn-filename.mp3
-```
+    nn-filename.mp3
 
 the app creates these files in the same folder as the source file:
 
-```text
-nn-filename-burned-subtitles.mp4
-nn-filename-optional-subtitles.mp4
-nn-filename-transcript.txt
-nn-filename-audio.mp3
-nn-filename-subtitles.vtt
-```
+    nn-filename-burned-subtitles.mp4
+    nn-filename-optional-subtitles.mp4
+    nn-filename-transcript.txt
+    nn-filename-audio.mp3
+    nn-filename-subtitles.vtt
 
 ### Output File Details
 
 | File | Purpose |
 |---|---|
-| `nn-filename-burned-subtitles.mp4` | MP4 video with subtitles permanently burned into the image |
-| `nn-filename-optional-subtitles.mp4` | MP4 video with subtitles embedded as a selectable subtitle track |
-| `nn-filename-transcript.txt` | Plain text transcript |
-| `nn-filename-audio.mp3` | MP3 audio export |
-| `nn-filename-subtitles.vtt` | WebVTT subtitle file |
+| nn-filename-burned-subtitles.mp4 | MP4 video with subtitles permanently burned into the image |
+| nn-filename-optional-subtitles.mp4 | MP4 video with subtitles embedded as a selectable subtitle track |
+| nn-filename-transcript.txt | Plain text transcript |
+| nn-filename-audio.mp3 | MP3 audio export |
+| nn-filename-subtitles.vtt | WebVTT subtitle file |
 
 ---
 
@@ -108,15 +214,15 @@ The app checks whether all expected output files already exist.
 
 If all five output files are found, the source file is skipped:
 
-```text
-nn-filename-burned-subtitles.mp4
-nn-filename-optional-subtitles.mp4
-nn-filename-transcript.txt
-nn-filename-audio.mp3
-nn-filename-subtitles.vtt
-```
+    nn-filename-burned-subtitles.mp4
+    nn-filename-optional-subtitles.mp4
+    nn-filename-transcript.txt
+    nn-filename-audio.mp3
+    nn-filename-subtitles.vtt
 
 This makes it safe to re-run the app on the same folder after adding more files.
+
+If you are testing subtitle styles, delete the burned subtitle output file before re-running.
 
 ---
 
@@ -128,9 +234,7 @@ This project uses Python with a virtual environment.
 
 Check Python:
 
-```powershell
-python --version
-```
+    python --version
 
 ### FFmpeg
 
@@ -138,23 +242,17 @@ FFmpeg and FFprobe must be installed and available on the system PATH.
 
 Check FFmpeg:
 
-```powershell
-ffmpeg -version
-```
+    ffmpeg -version
 
 Check FFprobe:
 
-```powershell
-ffprobe -version
-```
+    ffprobe -version
 
 ### Python Packages
 
 Install project dependencies inside the virtual environment:
 
-```powershell
-python -m pip install -r requirements.txt
-```
+    python -m pip install -r requirements.txt
 
 ---
 
@@ -162,18 +260,14 @@ python -m pip install -r requirements.txt
 
 From the project root:
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-```
+    python -m venv .venv
+    .\.venv\Scripts\Activate.ps1
+    python -m pip install -r requirements.txt
 
 If PowerShell blocks script activation, run:
 
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\.venv\Scripts\Activate.ps1
-```
+    Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+    .\.venv\Scripts\Activate.ps1
 
 ---
 
@@ -181,9 +275,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
 From the project root, with the virtual environment activated:
 
-```powershell
-python main.py
-```
+    python main.py
 
 The app will ask for:
 
@@ -200,19 +292,15 @@ The app automatically creates both subtitle video versions, so it does not ask w
 
 Input:
 
-```text
-C:\Media\01-introduction.mp4
-```
+    C:\Media\01-introduction.mp4
 
 Outputs:
 
-```text
-C:\Media\01-introduction-burned-subtitles.mp4
-C:\Media\01-introduction-optional-subtitles.mp4
-C:\Media\01-introduction-transcript.txt
-C:\Media\01-introduction-audio.mp3
-C:\Media\01-introduction-subtitles.vtt
-```
+    C:\Media\01-introduction-burned-subtitles.mp4
+    C:\Media\01-introduction-optional-subtitles.mp4
+    C:\Media\01-introduction-transcript.txt
+    C:\Media\01-introduction-audio.mp3
+    C:\Media\01-introduction-subtitles.vtt
 
 ---
 
@@ -220,9 +308,7 @@ C:\Media\01-introduction-subtitles.vtt
 
 Input:
 
-```text
-C:\Media\Course
-```
+    C:\Media\Course
 
 The app will scan that folder and its subfolders for supported audio/video files.
 
@@ -234,17 +320,15 @@ When the app starts, it asks which Whisper model to use:
 
 | Option | Model | Notes |
 |---|---|---|
-| 1 | `tiny` | Fastest, lowest accuracy |
-| 2 | `base` | Good default for testing |
-| 3 | `small` | Better quality |
-| 4 | `medium` | Slower, better quality |
-| 5 | `large-v3` | Slowest, best quality |
+| 1 | tiny | Fastest, lowest accuracy |
+| 2 | base | Good default for testing |
+| 3 | small | Better quality |
+| 4 | medium | Slower, better quality |
+| 5 | large-v3 | Slowest, best quality |
 
 Default:
 
-```text
-base
-```
+    base
 
 ---
 
@@ -254,17 +338,13 @@ For audio files, the app needs a visual background so it can create subtitled MP
 
 If the audio file is:
 
-```text
-07-topic.mp3
-```
+    07-topic.mp3
 
 the app checks for:
 
-```text
-07-topic.jpg
-07-topic.jpeg
-07-topic.png
-```
+    07-topic.jpg
+    07-topic.jpeg
+    07-topic.png
 
 If one exists, it is used as the video background.
 
@@ -274,7 +354,7 @@ If none exists, a blank gray 1920x1080 image is generated automatically.
 
 ## Temporary Files
 
-The app may create a `temp` folder beside processed media files for intermediate working files, such as:
+The app may create a temp folder beside processed media files for intermediate working files, such as:
 
 - normalized WAV audio for transcription
 - base video files for audio-only inputs
@@ -286,34 +366,34 @@ These files are working files and can usually be deleted after processing if the
 
 ## Project Structure
 
-```text
-Video - Audio Subtitler
-|-- Documentation
-|   |-- readme maker.ps1
-|   |-- Video-Audio-Subtitler-Documentation.md
-|-- libraries
-|   |-- __init__.py
-|   |-- Sx9FFmpeg.py
-|   |-- Sx9MediaInspector.py
-|   |-- Sx9PathUtils.py
-|   |-- Sx9SubtitleRenderer.py
-|   |-- Sx9VTTGenerator.py
-|   |-- Sx9Whisper.py
-|-- models
-|   |-- __init__.py
-|   |-- Sx9SubtitlingJob.py
-|   |-- Sx9TranscriptionSegment.py
-|-- ffmpeger.ps1
-|-- main.py
-|-- README.md
-|-- requirements.txt
-```
+    Video - Audio Subtitler
+    |-- Documentation
+    |   |-- readme maker.ps1
+    |   |-- Video-Audio-Subtitler-Documentation.md
+    |-- libraries
+    |   |-- __init__.py
+    |   |-- Sx9FFmpeg.py
+    |   |-- Sx9MediaInspector.py
+    |   |-- Sx9PathUtils.py
+    |   |-- Sx9SubtitleRenderer.py
+    |   |-- Sx9SubtitleStyleConfig.py
+    |   |-- Sx9VTTGenerator.py
+    |   |-- Sx9Whisper.py
+    |-- models
+    |   |-- __init__.py
+    |   |-- Sx9SubtitlingJob.py
+    |   |-- Sx9TranscriptionSegment.py
+    |-- ffmpeger.ps1
+    |-- main.py
+    |-- README.md
+    |-- requirements.txt
+    |-- subtitle-style.yaml
 
 ---
 
 ## Main Components
 
-### `main.py`
+### main.py
 
 Command-line entry point and workflow coordinator.
 
@@ -323,9 +403,27 @@ Responsibilities:
 - finds supported media files
 - manages batch processing
 - skips completed files
+- loads subtitle styling configuration
 - coordinates audio extraction, transcription, subtitle generation, and video rendering
 
-### `libraries/Sx9FFmpeg.py`
+### subtitle-style.yaml
+
+YAML configuration file for burned-in subtitle appearance.
+
+Used for:
+
+- selecting an active subtitle preset
+- changing font name
+- changing font size
+- changing subtitle colors
+- changing outline and shadow
+- changing subtitle position and bottom margin
+
+### libraries/Sx9SubtitleStyleConfig.py
+
+Loads subtitle-style.yaml and converts the selected preset into FFmpeg subtitle style settings.
+
+### libraries/Sx9FFmpeg.py
 
 Wrapper around FFmpeg and FFprobe.
 
@@ -335,22 +433,22 @@ Used for:
 - extracting audio from video
 - normalizing audio
 - creating video from image and audio
-- burning subtitles
+- burning subtitles with optional style settings
 - embedding subtitles
 
-### `libraries/Sx9MediaInspector.py`
+### libraries/Sx9MediaInspector.py
 
 Detects supported media types and validates images.
 
-### `libraries/Sx9SubtitleRenderer.py`
+### libraries/Sx9SubtitleRenderer.py
 
 Applies subtitles by choosing burned or embedded subtitle rendering.
 
-### `libraries/Sx9VTTGenerator.py`
+### libraries/Sx9VTTGenerator.py
 
 Creates WebVTT subtitle files from transcription segments.
 
-### `libraries/Sx9Whisper.py`
+### libraries/Sx9Whisper.py
 
 Handles transcription and transcript writing.
 
@@ -362,27 +460,58 @@ Handles transcription and transcript writing.
 
 If FFmpeg or FFprobe is unavailable, confirm they work in PowerShell:
 
-```powershell
-ffmpeg -version
-ffprobe -version
-```
+    ffmpeg -version
+    ffprobe -version
 
-If they do not work, install FFmpeg and add its `bin` folder to your PATH.
+If they do not work, install FFmpeg and add its bin folder to your PATH.
 
 ### No media files found
 
 Confirm the folder contains files with supported extensions:
 
-```text
-.mp3 .wav .m4a .aac .flac .ogg .wma
-.mp4 .mov .mkv .avi .webm .m4v
-```
+    .mp3 .wav .m4a .aac .flac .ogg .wma
+    .mp4 .mov .mkv .avi .webm .m4v
 
 ### File skipped unexpectedly
 
 The app skips a source file only when all five expected output files already exist.
 
 Delete one or more output files if you want the app to regenerate that source file.
+
+### Subtitle style did not change
+
+Subtitle styling applies mainly to the burned-in subtitle video.
+
+Check that you changed:
+
+    subtitle-style.yaml
+
+Then delete the existing burned subtitle output:
+
+    nn-filename-burned-subtitles.mp4
+
+Run the app again to regenerate it.
+
+### Font does not look like expected
+
+The selected font must be installed on the system where FFmpeg runs.
+
+If FFmpeg cannot find the requested font, it may fall back to a default font.
+
+Try a common installed font such as:
+
+    Arial
+    Georgia
+    Verdana
+    Times New Roman
+
+### Embedded subtitles do not use the configured style
+
+This is expected for many players.
+
+The optional/selectable subtitle output stores subtitles as a subtitle track, and the player usually decides how those subtitles look.
+
+Use the burned subtitle output when you need exact visual styling.
 
 ### Audio file has no background image
 
@@ -392,22 +521,20 @@ The app will create a blank gray background automatically.
 
 ---
 
-## Recommended `.gitignore`
+## Recommended .gitignore
 
 Generated media and local environment files should usually not be committed.
 
 Recommended ignores:
 
-```text
-.venv/
-__pycache__/
-*.pyc
-output/
-temp/
-.idea/
-.DS_Store
-Thumbs.db
-```
+    .venv/
+    __pycache__/
+    *.pyc
+    output/
+    temp/
+    .idea/
+    .DS_Store
+    Thumbs.db
 
 ---
 
@@ -417,11 +544,12 @@ Current workflow:
 
 1. Select a file or folder.
 2. Recursively discover supported media.
-3. Skip completed files.
-4. Extract or normalize audio.
-5. Transcribe audio.
-6. Write transcript.
-7. Write VTT subtitles.
-8. Export MP3 audio.
-9. Create burned subtitle video.
-10. Create optional subtitle video.
+3. Load subtitle style configuration.
+4. Skip completed files.
+5. Extract or normalize audio.
+6. Transcribe audio.
+7. Write transcript.
+8. Write VTT subtitles.
+9. Export MP3 audio.
+10. Create burned subtitle video with configured styling.
+11. Create optional subtitle video.

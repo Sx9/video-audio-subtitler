@@ -1,0 +1,65 @@
+# subtitle-style.yaml
+
+# Presets to quickly try different looks:
+# - clean
+# - bold
+# - cinematic
+# - social
+active_preset: cinematic
+
+presets:
+  clean:
+    font_name: Aptos
+    font_size: 28
+    primary_colour: "&H00FFFFFF"
+    outline_colour: "&H00000000"
+    back_colour: "&H80000000"
+    bold: false
+    italic: false
+    border_style: 1
+    outline: 2
+    shadow: 1
+    alignment: 2
+    margin_v: 48
+
+  bold:
+    font_name: Arial
+    font_size: 34
+    primary_colour: "&H00FFFFFF"
+    outline_colour: "&H00000000"
+    back_colour: "&H80000000"
+    bold: true
+    italic: false
+    border_style: 1
+    outline: 3
+    shadow: 1
+    alignment: 2
+    margin_v: 56
+
+  cinematic:
+    font_name: Georgia
+    font_size: 30
+    primary_colour: "&H00FFFFFF"
+    outline_colour: "&H00000000"
+    back_colour: "&H80000000"
+    bold: false
+    italic: false
+    border_style: 1
+    outline: 2
+    shadow: 2
+    alignment: 2
+    margin_v: 70
+
+  social:
+    font_name: Arial
+    font_size: 42
+    primary_colour: "&H00FFFFFF"
+    outline_colour: "&H00000000"
+    back_colour: "&H90000000"
+    bold: true
+    italic: false
+    border_style: 1
+    outline: 4
+    shadow: 0
+    alignment: 2
+    margin_v: 96

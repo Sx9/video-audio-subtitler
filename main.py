@@ -7,8 +7,23 @@ from libraries.Sx9FFmpeg import Sx9FFmpeg
 from libraries.Sx9MediaInspector import Sx9MediaInspector
 from libraries.Sx9PathUtils import Sx9PathUtils
 from libraries.Sx9SubtitleRenderer import Sx9SubtitleRenderer
+from libraries.Sx9SubtitleStyleConfig import Sx9SubtitleStyleConfig
 from libraries.Sx9VTTGenerator import Sx9VTTGenerator
 from libraries.Sx9Whisper import Sx9Whisper
+
+
+GENERATED_OUTPUT_SUFFIXES = (
+    "-burned-subtitles.mp4",
+    "-optional-subtitles.mp4",
+    "-transcript.txt",
+    "-audio.mp3",
+    "-subtitles.vtt",
+)
+
+
+IGNORED_FOLDER_NAMES = {
+    "temp",
+}
 
 
 def main() -> None:
@@ -23,6 +38,8 @@ def main() -> None:
     media_inspector = Sx9MediaInspector()
     ffmpeg = Sx9FFmpeg()
     subtitle_renderer = Sx9SubtitleRenderer(ffmpeg)
+    subtitle_style_config = Sx9SubtitleStyleConfig()
+    subtitle_force_style = subtitle_style_config.load_force_style()
     vtt_generator = Sx9VTTGenerator()
 
     print("Checking FFmpeg...")
@@ -35,11 +52,11 @@ def main() -> None:
 
     if not media_paths:
         print()
-        print("No supported audio or video files were found.")
+        print("No supported audio or video files were found that still need processing.")
         return
 
     print()
-    print(f"Found {len(media_paths)} supported media file(s).")
+    print(f"Found {len(media_paths)} supported media file(s) that need processing.")
     print()
 
     whisper_model_size = ask_whisper_model_size()
@@ -60,6 +77,7 @@ def main() -> None:
                 subtitle_renderer=subtitle_renderer,
                 vtt_generator=vtt_generator,
                 whisper=whisper,
+                subtitle_force_style=subtitle_force_style,
             )
         except Exception as error:
             print()
@@ -78,6 +96,7 @@ def process_media_file(
     subtitle_renderer: Sx9SubtitleRenderer,
     vtt_generator: Sx9VTTGenerator,
     whisper: Sx9Whisper,
+    subtitle_force_style: str | None,
 ) -> None:
     source_path = Path(input_path)
     media_type = media_inspector.get_media_type(str(source_path))
@@ -174,6 +193,7 @@ def process_media_file(
         vtt_path=str(output_paths["subtitles"]),
         output_video_path=str(output_paths["burned_video"]),
         mode="burn",
+        subtitle_force_style=subtitle_force_style,
     )
 
     print()
@@ -242,16 +262,10 @@ def find_supported_media_files(
     path = Path(input_path)
 
     if path.is_file():
-        try:
-            media_inspector.get_media_type(str(path))
-            return [str(path)]
-        except ValueError:
+        if not should_process_candidate_file(path, media_inspector):
             return []
 
-    supported_extensions = {
-        *media_inspector.AUDIO_EXTENSIONS,
-        *media_inspector.VIDEO_EXTENSIONS,
-    }
+        return [str(path)]
 
     media_files = []
 
@@ -259,10 +273,62 @@ def find_supported_media_files(
         if not child_path.is_file():
             continue
 
-        if child_path.suffix.lower() in supported_extensions:
-            media_files.append(str(child_path))
+        if not should_process_candidate_file(child_path, media_inspector):
+            continue
+
+        media_files.append(str(child_path))
 
     return sorted(media_files)
+
+
+def should_process_candidate_file(
+    path: Path,
+    media_inspector: Sx9MediaInspector,
+) -> bool:
+    if is_in_ignored_folder(path):
+        return False
+
+    if is_generated_output_file(path):
+        return False
+
+    if not is_supported_media_file(path, media_inspector):
+        return False
+
+    if all_expected_output_files_exist(path):
+        return False
+
+    return True
+
+
+def is_in_ignored_folder(path: Path) -> bool:
+    return any(part.lower() in IGNORED_FOLDER_NAMES for part in path.parts)
+
+
+def is_generated_output_file(path: Path) -> bool:
+    filename = path.name.lower()
+
+    return any(
+        filename.endswith(output_suffix)
+        for output_suffix in GENERATED_OUTPUT_SUFFIXES
+    )
+
+
+def is_supported_media_file(
+    path: Path,
+    media_inspector: Sx9MediaInspector,
+) -> bool:
+    supported_extensions = {
+        *media_inspector.AUDIO_EXTENSIONS,
+        *media_inspector.VIDEO_EXTENSIONS,
+    }
+
+    return path.suffix.lower() in supported_extensions
+
+
+def all_expected_output_files_exist(source_path: Path) -> bool:
+    output_paths = get_output_paths(source_path)
+
+    return all(path.exists() for path in output_paths.values())
 
 
 def get_output_paths(source_path: Path) -> dict[str, Path]:
