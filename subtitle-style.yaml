@@ -10,7 +10,7 @@ active_preset: clean
 presets:
   clean:
     font_name: Aptos
-    font_size: 20
+    font_size: 15
     primary_colour: "&H00FFFFFF"
     outline_colour: "&H00000000"
     back_colour: "&H80000000"
@@ -20,7 +20,7 @@ presets:
     outline: 1
     shadow: 0
     alignment: 2
-    margin_v: 24
+    margin_v: 15
 
   bold:
     font_name: Arial
