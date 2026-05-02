@@ -5,9 +5,23 @@
 # - bold
 # - cinematic
 # - social
-active_preset: clean
+active_preset: tiny
 
 presets:
+  tiny:
+    font_name: Aptos
+    font_size: 8
+    primary_colour: "&H00FFFFFF"
+    outline_colour: "&H00444444"
+    back_colour: "&H80888888"
+    bold: false
+    italic: false
+    border_style: 1
+    outline: 1
+    shadow: 0
+    alignment: 2
+    margin_v: 15
+
   clean:
     font_name: Aptos
     font_size: 15
